@@ -1,0 +1,3 @@
+
+ADRESSE = ''
+PORT = 4444
