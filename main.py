@@ -24,8 +24,8 @@ def sendCapturedImage(path, serveur: RobotTCPServer):
     img = Image.open(path)
     npArray = np.array(img)
 
-    image = Image.fromarray(npArray)
-    image.show()
+    #image = Image.fromarray(npArray)
+    #image.show()
 
 
     imBytes = npArray.tobytes()
