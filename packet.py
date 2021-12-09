@@ -17,6 +17,7 @@ class Packet:
         self.stream = bitstring.BitStream()
         if contentBuffer:
             self.stream.append(contentBuffer)
+            self.stream.pos = 9 * 8
         else:
             self.writeInt8(0xFB)
             self.writeInt32(0) #for length
