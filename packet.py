@@ -1,22 +1,12 @@
-
-import struct
-import bitstring
+﻿import bitstring
 
 
 class Packet:
-    '''
-        Packet buffer structure: FB 00 00 00 F0 00 00 00 0A ... FE
-        FB: Flag indiquant le début du packet
-        00 00 00 F1: Longeur du packet
-        00 00 00 0A: ID du packet
-        ... Corps du packet
-        FE: Flag indiquant la fin du packet
 
-    '''
-    def __init__(self, contentBuffer: bytes = False):
+    def __init__(self, contentBuffer = False):
         self.stream = bitstring.BitStream()
         if contentBuffer:
-            self.stream.append(contentBuffer)
+            self.stream.append(bitstring.pack("bytes:{0}".format(len(contentBuffer)), contentBuffer))
             self.stream.pos = 9 * 8
         else:
             self.writeInt8(0xFB)
@@ -29,24 +19,25 @@ class Packet:
         return self.stream.read('int:8')
 
     def writeInt32(self, v):
-        self.append(v, '>i')
+        self.append(v, 'int:32')
 
     def writeInt8(self, v):
-        self.append(v, '>B')
+        self.append(v, 'uint:8')
 
-    def writeBytes(self, data: bytes):
+    def writeBytes(self, data):
         self.writeInt32(len(data))
-        self.stream.append(data)
+        self.stream.append(bitstring.pack("bytes:{0}".format(len(data)), data))
 
     def packetId(self):
-        return int.from_bytes(self.stream.bytes[5:9], 'big')
+        return bitstring.Bits(self.stream[5*8:9*8])._readuintbe(32, 0)
+        #int.from_bytes(self.stream.bytes[5:9], 'big')
 
     def finalizePacket(self):
         self.writeInt8(0xFE)
         self.writeLength()
 
     def writeLength(self):
-        self.stream.overwrite((self.stream.length // 8).to_bytes(4, byteorder='big'), 1 * 8)
+        self.stream.overwrite(bitstring.pack('int:32', self.stream.length // 8), 1 * 8)
 
-    def append(self, v, fmt='>B'):
-        self.stream.append(struct.pack(fmt, v))
+    def append(self, v, fmt='uint:8'):
+        self.stream.append(bitstring.pack(fmt, v))

@@ -18,6 +18,7 @@ class RobotTCPServer:
         self.address = serverAddress
         self.port = serverPort
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind((self.address, self.port))
         self.clients = []
         self.read_list = []
@@ -34,7 +35,6 @@ class RobotTCPServer:
                         client, adresse_client = self.socket.accept()
                         self.read_list.append(client)
                         self.clients.append(client)
-                        logging.info("Connection reçue de", adresse_client)
                         newConnectionCallback(client)
                 else:
                     try:
@@ -53,9 +53,8 @@ class RobotTCPServer:
         self.read_list.remove(s)
         self.clients.remove(s)
 
-    def sendPacket(self, packet: Packet):
+    def sendPacket(self, packet):
         if self.socket.fileno() == -1:
-            logging.info("Connexion fermée. L'envoi ne peut être effectué.")
             return
 
         for i in range(len(self.clients)):
@@ -67,14 +66,3 @@ class RobotTCPServer:
 
 
 
-'''
-# test..
-if __name__ == '__main__':
-    stream = bitstring.BitStream()
-    print(bytes.fromhex('ff110000'))
-    stream.append(bytes.fromhex('11110000'))
-    stream.append(struct.pack('>i', 2))
-    stream.overwrite(bytes.fromhex('0000000000'), 24)
-    print(int.from_bytes(stream.bytes[0:4], 'big'))
-    print(stream.bytes)
-'''
